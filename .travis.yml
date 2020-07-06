@@ -1,0 +1,14 @@
+language: python
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9-dev"
+install:
+  - pip install . mypy isort black pytest flake8 flake8-bugbear
+script:
+  - mypy java_manifest.py
+  - isort . --check --diff
+  - black --check .
+  - pytest
+  - flake8 java_manifest.py

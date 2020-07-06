@@ -1,0 +1,3 @@
+[flake8]
+; Black likes spaces around slice's colon `:`
+ignore = E203
