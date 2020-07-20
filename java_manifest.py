@@ -1,44 +1,84 @@
 """Dependency-free parser of Java's MANIFEST.MF file.
 
+All of these functions are overloaded to allow for generic `Encoder`s and
+`Decoder`s. Once https://github.com/python/mypy/issues/3737 lands, we should no
+longer have to overload things because the default value should be accepted.
+
 Released under the MIT license.
 """
 
 import os
 from io import StringIO, TextIOWrapper
-from typing import IO, BinaryIO, Dict, List, TextIO, Union, cast
+from typing import (
+    IO,
+    BinaryIO,
+    Callable,
+    Dict,
+    List,
+    TextIO,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 from zipfile import ZipFile
 
 __version__ = "0.1.0"
 
-Section = Dict[str, Union[bool, str]]
+T = TypeVar("T")
+
+Section = Dict[str, T]
 """Single block of key-values pairs in a Manifest"""
-Manifest = List[Section]
+
+Manifest = List[Section[T]]
 """List of Sections, delimited by empty lines"""
+
+Decoder = Callable[[str, str], T]
+"""Gives the `T` value from some-key value pair from a raw manifest.
+
+This function is given the raw `str` from a Manifest to convert into more
+useful values.
+
+Note: This must return useful values in all cases.
+"""
+
+Encoder = Callable[[str, T], str]
+"""Gives the `str` value for some key-value pair from a dict.
+
+This `str` encoded type `T` is then written into the Manifest.
+
+Note: This must return useful values in all cases.
+"""
+
 
 LINE_CONT = " "
 LINE_END = "\r\n"
 LINE_LEN = 70
 
 
-def decode_val(val: str) -> Union[bool, str]:
-    if val == "true":
-        return True
-    elif val == "false":
-        return False
-    else:
-        return val
+def default_decoder(key: str, val: str) -> str:
+    if not isinstance(val, str):
+        raise ValueError(f"'{key}' has {type(val)} value, expected str")
+    return val
 
 
-def encode_val(val: Union[bool, str]) -> str:
-    if isinstance(val, bool):
-        return "true" if val is True else "false"
-    elif isinstance(val, str):
-        return val
-    else:
-        raise ValueError(f"cannot encode {type(val)} (val={val})")
+def default_encoder(key: str, val: str) -> str:
+    if not isinstance(val, str):
+        raise ValueError(f"'{key}' has {type(val)} value, expected str")
+    return val
 
 
-def loads(s: str) -> Manifest:
+@overload
+def loads(s: str) -> Manifest[str]:
+    ...
+
+
+@overload
+def loads(s: str, *, decoder: Decoder[T]) -> Manifest[T]:
+    ...
+
+
+def loads(s, *, decoder=default_decoder):
     """Parse MANIFEST data from string.
 
     Args:
@@ -47,10 +87,20 @@ def loads(s: str) -> Manifest:
     Return:
         Manifest parsed from `s`.
     """
-    return load(StringIO(s))
+    return load(StringIO(s), decoder=decoder)
 
 
-def load(fp: TextIO) -> Manifest:
+@overload
+def load(fp: TextIO) -> Manifest[str]:
+    ...
+
+
+@overload
+def load(fp: TextIO, *, decoder: Decoder[T]) -> Manifest[T]:
+    ...
+
+
+def load(fp, *, decoder=default_decoder):
     """Parse MANIFEST data from the readable file-like object.
 
     Args:
@@ -76,7 +126,7 @@ def load(fp: TextIO) -> Manifest:
         else:
             # Finish off the key value pair
             if key and val:
-                sect[key] = decode_val(val.getvalue())
+                sect[key] = decoder(key, val.getvalue())
                 key, val = None, None
 
             if line:
@@ -94,7 +144,7 @@ def load(fp: TextIO) -> Manifest:
     if key and val:
         if key in sect:
             raise KeyError(f"line {lnum}: duplicate key '{key}'")
-        sect[key] = decode_val(val.getvalue())
+        sect[key] = decoder(key, val.getvalue())
         key, val = None, None
     if sect:
         sections.append(sect)
@@ -103,7 +153,19 @@ def load(fp: TextIO) -> Manifest:
     return sections
 
 
-def from_jar(jarfile: Union["os.PathLike[str]", IO[bytes]]) -> Manifest:
+@overload
+def from_jar(jarfile: Union["os.PathLike[str]", IO[bytes]]) -> Manifest[str]:
+    ...
+
+
+@overload
+def from_jar(
+    jarfile: Union["os.PathLike[str]", IO[bytes]], *, decoder: Decoder[T]
+) -> Manifest[T]:
+    ...
+
+
+def from_jar(jarfile, *, decoder=default_decoder):
     """Parse META-INF/MANIFEST.MF from jarfile
 
     Args:
@@ -118,10 +180,44 @@ def from_jar(jarfile: Union["os.PathLike[str]", IO[bytes]]) -> Manifest:
             cast(BinaryIO, zf.open("META-INF/MANIFEST.MF")),
             encoding="utf-8",
         ) as manifest:
-            return load(manifest)
+            return load(manifest, decoder=decoder)
 
 
-def dump(manifest: Manifest, fp: TextIO):
+@overload
+def dumps(obj: Manifest[str]) -> str:
+    ...
+
+
+@overload
+def dumps(obj: Manifest[T], *, encoder: Encoder[T]) -> str:
+    ...
+
+
+def dumps(obj, *, encoder=default_encoder):
+    """Return MANIFEST string from manifest object.
+
+    Args:
+        manifest: Manifest to convert to a MANIFEST formatted string.
+
+    Return:
+        MANIFEST formatted string from `manifest`.
+    """
+    buf = StringIO()
+    dump(obj, buf, encoder=encoder)
+    return buf.getvalue()
+
+
+@overload
+def dump(manifest: Manifest[str], fp: TextIO) -> None:
+    ...
+
+
+@overload
+def dump(manifest: Manifest[T], fp: TextIO, *, encoder: Encoder[T]) -> None:
+    ...
+
+
+def dump(manifest, fp, *, encoder=default_encoder):
     """Write manifest into writable file-like object.
 
     Args:
@@ -133,7 +229,7 @@ def dump(manifest: Manifest, fp: TextIO):
         if sect_num != 0:
             fp.write(LINE_END)
         for key, val in sect.items():
-            encoded = f"{key}: {encode_val(val)}"
+            encoded = f"{key}: {encoder(key, val)}"
             fp.write(encoded[:LINE_LEN])
             fp.write(LINE_END)
             chunk_len = LINE_LEN - 1
@@ -141,17 +237,3 @@ def dump(manifest: Manifest, fp: TextIO):
                 fp.write(LINE_CONT)
                 fp.write(encoded[i : i + chunk_len])
                 fp.write(LINE_END)
-
-
-def dumps(obj: Manifest) -> str:
-    """Return MANIFEST string from manifest object.
-
-    Args:
-        manifest: Manifest to convert to a MANIFEST formatted string.
-
-    Return:
-        MANIFEST formatted string from `manifest`.
-    """
-    buf = StringIO()
-    dump(obj, buf)
-    return buf.getvalue()
