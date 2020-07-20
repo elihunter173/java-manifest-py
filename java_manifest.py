@@ -7,6 +7,8 @@ longer have to overload things because the default value should be accepted.
 Released under the MIT license.
 """
 
+__version__ = "0.1.0"
+
 import os
 from io import StringIO, TextIOWrapper
 from typing import (
@@ -22,8 +24,6 @@ from typing import (
     overload,
 )
 from zipfile import ZipFile
-
-__version__ = "0.1.0"
 
 T = TypeVar("T")
 
