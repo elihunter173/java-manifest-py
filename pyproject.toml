@@ -1,3 +1,8 @@
+[tool.isort]
+# Make isort agree with black
+multi_line_output = 3
+include_trailing_comma = true
+
 [tool.poetry]
 name = "java-manifest"
 version = "0.1.0"
