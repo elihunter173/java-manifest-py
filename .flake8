@@ -1,3 +1,5 @@
 [flake8]
 ; Black likes spaces around slice's colon `:`
 ignore = E203
+; Agree with black
+max-line-length = 88
