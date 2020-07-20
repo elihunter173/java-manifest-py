@@ -11,4 +11,6 @@ script:
   - isort . --check --diff
   - black --check .
   - pytest
+  # We use CRLF in java_manifest.py but the files use LF
+  - python -m doctest --option NORMALIZE_WHITESPACE README.md java_manifest.py
   - flake8 java_manifest.py
