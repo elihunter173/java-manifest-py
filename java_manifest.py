@@ -57,14 +57,12 @@ LINE_LEN = 70
 
 
 def default_decoder(key: str, val: str) -> str:
-    if not isinstance(val, str):
-        raise ValueError(f"'{key}' has {type(val)} value, expected str")
     return val
 
 
 def default_encoder(key: str, val: str) -> str:
     if not isinstance(val, str):
-        raise ValueError(f"'{key}' has {type(val)} value, expected str")
+        raise ValueError(f"key '{key}' has type {type(val)} value, expected str")
     return val
 
 
