@@ -7,10 +7,10 @@ python:
 install:
   - pip install . mypy isort black pytest flake8 flake8-bugbear
 script:
-  - mypy java_manifest.py
+  - mypy java_manifest
   - isort . --check --diff
   - black --check .
   - pytest
-  # We use CRLF in java_manifest.py but the files use LF
-  - python -m doctest --option NORMALIZE_WHITESPACE README.md java_manifest.py
-  - flake8 java_manifest.py
+  # We use CRLF in java_manifest but the files use LF
+  - python -m doctest --option NORMALIZE_WHITESPACE README.md
+  - flake8 java_manifest
