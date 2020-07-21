@@ -23,7 +23,7 @@ from typing import (
 )
 from zipfile import ZipFile
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
 T = TypeVar("T")
 
