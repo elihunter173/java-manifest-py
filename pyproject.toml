@@ -11,6 +11,8 @@ authors = ["Eli W. Hunter <elihunter173@gmail.com>"]
 readme = "README.md"
 homepage = "https://github.com/elihunter173/java-manifest-py"
 keywords = ["java", "jar", "manifest"]
+# So we get marked as a package with type annotations
+include = ["java_manifest/py.typed"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
