@@ -5,7 +5,7 @@ include_trailing_comma = true
 
 [tool.poetry]
 name = "java-manifest"
-version = "1.0.0"
+version = "1.1.0"
 description = "Encode/decode Java's META-INF/MANIFEST.MF in Python"
 authors = ["Eli W. Hunter <elihunter173@gmail.com>"]
 readme = "README.md"
