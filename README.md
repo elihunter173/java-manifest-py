@@ -1,6 +1,7 @@
 # java-manifest-py
 
 [![Build Status](https://travis-ci.com/elihunter173/java-manifest-py.svg?branch=master)](https://travis-ci.com/elihunter173/java-manifest-py)
+[![PyPI version](https://badge.fury.io/py/java-manifest.svg)](https://badge.fury.io/py/java-manifest)
 
 Encode/decode Java's `META-INF/MANIFEST.MF` in Python.
 
