@@ -3,8 +3,6 @@
 All of these functions are overloaded to allow for generic `Encoder`s and
 `Decoder`s. Once https://github.com/python/mypy/issues/3737 lands, we should no
 longer have to overload things because the default value should be accepted.
-
-Released under the MIT license.
 """
 
 __version__ = "1.1.0"
