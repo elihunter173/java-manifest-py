@@ -15,13 +15,13 @@ $ pip install java-manifest
 
 ## Usage
 
-A MANIFEST is represented by a list of dictionaries, where each dictionary
-corresponds to an empty-line delimited section of the MANIFEST and each
-dictionary has `str` keys and either `str` or `bool` values.
+A manifest is represented by a list of dictionaries, where each dictionary
+corresponds to an empty-line delimited section of the manifest and each
+dictionary has `str` keys and `str` values.
 
-`java_manifest.loads` takes a string containing MANIFEST-formatted data and
+`java_manifest.loads` takes a string containing manifest-formatted data and
 returns a list of dictionaries, where each dictionary is a section in the
-MANIFEST. `java_manifest.load` does the same, using any `typing.TextIO`
+manifest. `java_manifest.load` does the same, using any `typing.TextIO`
 readable object.
 
 ```python
@@ -40,9 +40,9 @@ readable object.
 
 ```
 
-Similarly, `java_manifest.dumps` returns a string of MANIFEST-formatted data
+Similarly, `java_manifest.dumps` returns a string of manifest-formatted data
 from a list of dictionaries, where each dictionary is a section in the
-MANIFEST. `java_manifest.dump` does the same, writing into any `typing.TextIO`
+manifest. `java_manifest.dump` does the same, writing into any `typing.TextIO`
 writable object.
 
 ```python
@@ -72,14 +72,14 @@ within the jar and `java_manifest.load`s that.
 
 ### Custom Encoders/Decoders
 
-Because Java's manifest file format doesn't deal with structured values within
-a section, specific uses of the format create ad-hoc encoding/decoding rules
-that can convert some structured data into a basic string so it can be encoded
-into a manifest and vice versa. The `encoder` and `decoder` arguments for
-dumping and loading respectively are responsible for handling this. An encoder
-and decoder both take in a key-value pair. However, an encoder receives
-potentially structured data as the value and returns plain string, while a
-decode receives string values and returns potentially structured data.
+Because Java's manifest file format does not deal with structured/typed values,
+specific uses of the format create ad-hoc encoding/decoding rules that convert
+structured/typed data to and from a string so it can be stored in a manifest.
+The `encoder` and `decoder` arguments for dumping and loading respectively are
+responsible for handling this. An encoder and decoder both take in a key-value
+pair. However, an encoder receives potentially structured/typed data as the
+value and returns a string, while a decoder receives string values and returns
+potentially structured/typed data.
 
 As we have already see, the default encoder and decoder does no transformation
 and prevents you from attempting to dump non-string data.
@@ -96,8 +96,8 @@ ValueError: key 'int' has type <class 'int'> value, expected str
 
 ```
 
-You can however describe more custom encoders that support for example lists of
-strings.
+You can however describe more custom encoders that support, for example, lists
+of strings.
 
 ```python
 >>> def encode(key, val):
